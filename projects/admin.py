@@ -9,6 +9,7 @@ class ProjectAdmin(admin.ModelAdmin):
         "id", "name", "owner", "status", "participants_list", "created_at",
     )
     list_display_links = ("id", "name")
+    list_editable = ("status",)
     list_filter = ("status",)
     search_fields = ("name", "description", "owner__email")
     autocomplete_fields = ("owner", "participants")
