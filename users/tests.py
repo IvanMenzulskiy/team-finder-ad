@@ -4,27 +4,29 @@ from http import HTTPStatus
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Skill, User
-from .utils import to_canonical_phone
+from users.models import Skill, User
+from users.utils import to_canonical_phone
 
 PASSWORD = "qwerty12345"
+DJANGO_EXPERT_NAME = "DjangoExpert"
+REACT_EXPERT_NAME = "ReactExpert"
 
 
 class UserModelTests(TestCase):
     def test_avatar_generated_on_save(self):
-        u = User.objects.create_user(
+        user = User.objects.create_user(
             email="a@example.com", password=PASSWORD,
-            name="A", surname="One",
+            name="Alice", surname="One",
         )
-        self.assertTrue(u.avatar.name)
-        self.assertTrue(u.check_password(PASSWORD))
+        self.assertTrue(user.avatar.name)
+        self.assertTrue(user.check_password(PASSWORD))
 
     def test_phone_canonical_on_save(self):
-        u = User.objects.create_user(
+        user = User.objects.create_user(
             email="b@example.com", password=PASSWORD,
-            name="B", surname="Two", phone="89001234567",
+            name="Bob", surname="Two", phone="89001234567",
         )
-        self.assertEqual(u.phone, "+79001234567")
+        self.assertEqual(user.phone, "+79001234567")
 
     def test_to_canonical_phone(self):
         self.assertEqual(to_canonical_phone("89001234567"), "+79001234567")
@@ -34,7 +36,7 @@ class UserModelTests(TestCase):
     def test_superuser(self):
         admin = User.objects.create_superuser(
             email="root@example.com", password=PASSWORD,
-            name="R", surname="A",
+            name="Root", surname="Admin",
         )
         self.assertTrue(admin.is_staff)
         self.assertTrue(admin.is_superuser)
@@ -49,37 +51,37 @@ class AuthFlowTests(TestCase):
         )
 
     def test_signup_redirects_to_login(self):
-        r = self.client.post(reverse("users:register"), {
+        response = self.client.post(reverse("users:register"), {
             "name": "New", "surname": "Guy",
             "email": "new@example.com", "password": PASSWORD,
         })
-        self.assertRedirects(r, reverse("users:login"))
+        self.assertRedirects(response, reverse("users:login"))
         self.assertTrue(
             User.objects.filter(email="new@example.com").exists(),
         )
 
     def test_signup_blocks_duplicate(self):
-        r = self.client.post(reverse("users:register"), {
+        response = self.client.post(reverse("users:register"), {
             "name": "Dup", "surname": "Mail",
             "email": "existing@example.com", "password": PASSWORD,
         })
-        self.assertEqual(r.status_code, HTTPStatus.OK)
-        self.assertContains(r, "уже существует")
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertContains(response, "уже существует")
 
     def test_login_and_logout(self):
-        r = self.client.post(reverse("users:login"), {
+        response = self.client.post(reverse("users:login"), {
             "email": "existing@example.com", "password": PASSWORD,
         })
-        self.assertEqual(r.status_code, HTTPStatus.FOUND)
-        r = self.client.get(reverse("users:logout"))
-        self.assertEqual(r.status_code, HTTPStatus.FOUND)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        response = self.client.get(reverse("users:logout"))
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
     def test_login_wrong_password(self):
-        r = self.client.post(reverse("users:login"), {
+        response = self.client.post(reverse("users:login"), {
             "email": "existing@example.com", "password": "incorrect",
         })
-        self.assertEqual(r.status_code, HTTPStatus.OK)
-        self.assertContains(r, "Неверный")
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertContains(response, "Неверный")
 
 
 class SkillFilterTests(TestCase):
@@ -90,30 +92,30 @@ class SkillFilterTests(TestCase):
 
         cls.user_with_django = User.objects.create_user(
             email="django_dev@example.com", password=PASSWORD,
-            name="DjangoExpert", surname="Backend",
+            name=DJANGO_EXPERT_NAME, surname="Backend",
         )
         cls.user_with_django.skills.add(cls.django_skill)
 
         cls.user_with_react = User.objects.create_user(
             email="react_dev@example.com", password=PASSWORD,
-            name="ReactExpert", surname="Frontend",
+            name=REACT_EXPERT_NAME, surname="Frontend",
         )
         cls.user_with_react.skills.add(cls.react_skill)
 
     def test_no_filter_shows_everyone(self):
-        r = self.client.get(reverse("users:list"))
-        self.assertEqual(r.status_code, HTTPStatus.OK)
-        self.assertContains(r, "DjangoExpert")
-        self.assertContains(r, "ReactExpert")
+        response = self.client.get(reverse("users:list"))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertContains(response, DJANGO_EXPERT_NAME)
+        self.assertContains(response, REACT_EXPERT_NAME)
 
     def test_filter_by_django_keeps_only_django_users(self):
-        r = self.client.get(reverse("users:list") + "?skill=Django")
-        self.assertEqual(r.status_code, HTTPStatus.OK)
-        self.assertContains(r, "DjangoExpert")
-        self.assertNotContains(r, "ReactExpert")
+        response = self.client.get(reverse("users:list") + "?skill=Django")
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertContains(response, DJANGO_EXPERT_NAME)
+        self.assertNotContains(response, REACT_EXPERT_NAME)
 
     def test_filter_unknown_skill_returns_empty(self):
-        r = self.client.get(reverse("users:list") + "?skill=Cobol")
-        self.assertEqual(r.status_code, HTTPStatus.OK)
-        self.assertNotContains(r, "DjangoExpert")
-        self.assertNotContains(r, "ReactExpert")
+        response = self.client.get(reverse("users:list") + "?skill=Cobol")
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertNotContains(response, DJANGO_EXPERT_NAME)
+        self.assertNotContains(response, REACT_EXPERT_NAME)
