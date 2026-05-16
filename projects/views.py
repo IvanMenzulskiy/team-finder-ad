@@ -12,15 +12,12 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST
 
+from projects.constants import PROJECTS_PAGE_SIZE
+from projects.forms import ProjectForm
+from projects.models import Project
+from projects.service import get_project_or_json_404, get_user_or_json
 from users.constants import SKILL_AUTOCOMPLETE_LIMIT
-from users.models import Skill, User
-
-from .constants import PROJECTS_PAGE_SIZE
-from .forms import ProjectForm
-from .models import Project
-
-
-# ---------- Стандартные проектные страницы --------------------------------
+from users.models import Skill
 
 
 def _project_qs():
@@ -86,24 +83,12 @@ def edit_project_view(request, pk):
     )
 
 
-# ---------- AJAX-эндпоинты проекта ----------------------------------------
-
-
-def _get_project_or_json_404(pk):
-    project = Project.objects.filter(pk=pk).first()
-    if project is None:
-        return None, JsonResponse(
-            {"status": "not_found"}, status=HTTPStatus.NOT_FOUND,
-        )
-    return project, None
-
-
 @login_required
 @require_POST
 def complete_project_view(request, pk):
-    project, missing = _get_project_or_json_404(pk)
-    if missing is not None:
-        return missing
+    project, error = get_project_or_json_404(pk)
+    if error is not None:
+        return error
     if project.owner_id != request.user.id:
         return JsonResponse(
             {"status": "forbidden"}, status=HTTPStatus.FORBIDDEN,
@@ -123,21 +108,14 @@ def complete_project_view(request, pk):
 @login_required
 @require_POST
 def toggle_participate_view(request, pk):
-    project, missing = _get_project_or_json_404(pk)
-    if missing is not None:
-        return missing
+    project, error = get_project_or_json_404(pk)
+    if error is not None:
+        return error
     if project.participants.filter(pk=request.user.pk).exists():
         project.participants.remove(request.user)
         return JsonResponse({"status": "ok", "participant": False})
     project.participants.add(request.user)
     return JsonResponse({"status": "ok", "participant": True})
-
-
-# ---------- AJAX-эндпоинты навыков пользователей --------------------------
-#
-# По контракту static/js/skills.js на странице профиля стоит контейнер с
-# ``data-project-id="{{ user.id }}"`` (в варианте 2 это id пользователя),
-# а сами эндпоинты живут под ``/projects/...`` (это требование фронтенда).
 
 
 @require_GET
@@ -155,20 +133,6 @@ def skill_autocomplete_view(request):
     return JsonResponse(list(matches), safe=False)
 
 
-def _user_or_json(pk, request_user):
-    """Возвращает пользователя; пускает только хозяина профиля."""
-    user = User.objects.filter(pk=pk).first()
-    if user is None:
-        return None, JsonResponse(
-            {"status": "not_found"}, status=HTTPStatus.NOT_FOUND,
-        )
-    if user.pk != request_user.pk and not request_user.is_staff:
-        return None, JsonResponse(
-            {"status": "forbidden"}, status=HTTPStatus.FORBIDDEN,
-        )
-    return user, None
-
-
 @login_required
 @require_POST
 def add_skill_view(request, pk):
@@ -176,9 +140,9 @@ def add_skill_view(request, pk):
 
     Тело либо ``{"skill_id": N}``, либо ``{"name": "Django"}``.
     """
-    user, missing = _user_or_json(pk, request.user)
-    if missing is not None:
-        return missing
+    user, error = get_user_or_json(pk, request.user)
+    if error is not None:
+        return error
 
     try:
         payload = json.loads(request.body or "{}")
@@ -207,9 +171,9 @@ def add_skill_view(request, pk):
 @require_POST
 def remove_skill_view(request, pk, skill_id):
     """Убрать навык: ``POST /projects/<user_id>/skills/<skill_id>/remove/``."""
-    user, missing = _user_or_json(pk, request.user)
-    if missing is not None:
-        return missing
+    user, error = get_user_or_json(pk, request.user)
+    if error is not None:
+        return error
     skill = Skill.objects.filter(pk=skill_id).first()
     if skill is None:
         return JsonResponse(
