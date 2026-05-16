@@ -1,12 +1,13 @@
 """Вспомогательные хелперы и валидаторы приложения users."""
 import io
 import secrets
+from enum import StrEnum
 
 from django.core.files.base import ContentFile
 from django.core.validators import RegexValidator
 from PIL import Image, ImageDraw, ImageFont
 
-from .constants import (
+from users.constants import (
     AVATAR_FALLBACK_LETTER,
     AVATAR_FONT_FILE,
     AVATAR_FONT_RATIO,
@@ -27,30 +28,21 @@ github_validator = RegexValidator(
     message="Ссылка должна вести на github.com",
 )
 
-# Палитра для placeholder-аватаров.
-PALETTE_OCEAN = "#4A6FA5"
-PALETTE_PLUM = "#7E5BA6"
-PALETTE_OLIVE = "#5F8A55"
-PALETTE_TANGERINE = "#D38844"
-PALETTE_RUBY = "#C25667"
-PALETTE_CYAN = "#449494"
-PALETTE_GRAPHITE = "#697384"
-PALETTE_VIOLET = "#9166A0"
-PALETTE_FOREST = "#4D7E47"
-PALETTE_TERRACOTTA = "#B65F3E"
 
-PALETTE = (
-    PALETTE_OCEAN,
-    PALETTE_PLUM,
-    PALETTE_OLIVE,
-    PALETTE_TANGERINE,
-    PALETTE_RUBY,
-    PALETTE_CYAN,
-    PALETTE_GRAPHITE,
-    PALETTE_VIOLET,
-    PALETTE_FOREST,
-    PALETTE_TERRACOTTA,
-)
+class AvatarColor(StrEnum):
+    OCEAN = "#4A6FA5"
+    PLUM = "#7E5BA6"
+    OLIVE = "#5F8A55"
+    TANGERINE = "#D38844"
+    RUBY = "#C25667"
+    CYAN = "#449494"
+    GRAPHITE = "#697384"
+    VIOLET = "#9166A0"
+    FOREST = "#4D7E47"
+    TERRACOTTA = "#B65F3E"
+
+
+PALETTE = list(AvatarColor)
 
 
 def to_canonical_phone(value):
@@ -70,10 +62,7 @@ def render_avatar(letter, side=AVATAR_SIDE_PX):
     try:
         font = ImageFont.truetype(AVATAR_FONT_FILE, size=target_size)
     except OSError:
-        try:
-            font = ImageFont.load_default(size=target_size)
-        except TypeError:
-            font = ImageFont.load_default()
+        font = ImageFont.load_default(size=target_size)
 
     box = pen.textbbox(AVATAR_TEXT_ANCHOR, char, font=font)
     text_w, text_h = box[2] - box[0], box[3] - box[1]
