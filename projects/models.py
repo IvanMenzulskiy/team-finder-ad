@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from users.utils import github_validator
 
-from .constants import NAME_MAX_LENGTH
+from projects.constants import NAME_MAX_LENGTH
 
 
 class Project(models.Model):
