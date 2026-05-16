@@ -1,0 +1,85 @@
+{
+  "skills": [
+    "Django", "Python", "JavaScript", "React", "Vue",
+    "PostgreSQL", "Docker", "DevOps", "FastAPI", "Figma",
+    "UI/UX", "Linux"
+  ],
+  "users": [
+    {
+      "email": "ivan@yandex.ru",
+      "password": "qwerty12345",
+      "name": "Иван",
+      "surname": "Менжульский",
+      "phone": "+79051112233",
+      "about": "Backend на Django, делаю pet-проекты в свободное время.",
+      "github_url": "https://github.com/ivan-demo",
+      "skills": ["Django", "Python", "PostgreSQL", "Docker"]
+    },
+    {
+      "email": "kate@example.com",
+      "password": "qwerty12345",
+      "name": "Катя",
+      "surname": "Воронцова",
+      "phone": "+79052223344",
+      "about": "Product designer, ищу команду в pet-проект.",
+      "github_url": "",
+      "skills": ["Figma", "UI/UX"]
+    },
+    {
+      "email": "stas@example.com",
+      "password": "qwerty12345",
+      "name": "Стас",
+      "surname": "Лебедев",
+      "phone": "+79053334455",
+      "about": "Fullstack: Django сзади, React спереди.",
+      "github_url": "https://github.com/stas-demo",
+      "skills": ["Django", "React", "JavaScript", "PostgreSQL"]
+    },
+    {
+      "email": "alina@example.com",
+      "password": "qwerty12345",
+      "name": "Алина",
+      "surname": "Юрова",
+      "phone": "+79054445566",
+      "about": "DevOps-инженер, нравится автоматизация и CI/CD.",
+      "github_url": "",
+      "skills": ["Docker", "DevOps", "Linux"]
+    }
+  ],
+  "projects": [
+    {
+      "owner_email": "ivan@yandex.ru",
+      "name": "Дневник тренировок",
+      "description": "Веб-приложение для учёта тренировок в зале.",
+      "status": "open",
+      "github_url": ""
+    },
+    {
+      "owner_email": "kate@example.com",
+      "name": "Маркетплейс цифровых иллюстраций",
+      "description": "Площадка, где художники продают свои работы.",
+      "status": "open",
+      "github_url": ""
+    },
+    {
+      "owner_email": "stas@example.com",
+      "name": "Чат-бот для подготовки к собеседованиям",
+      "description": "Telegram-бот с вопросами и моковыми интервью.",
+      "status": "open",
+      "github_url": ""
+    },
+    {
+      "owner_email": "alina@example.com",
+      "name": "Панель мониторинга домашних серверов",
+      "description": "Лёгкая панель для отслеживания состояния домашних серверов.",
+      "status": "closed",
+      "github_url": ""
+    }
+  ],
+  "superuser": {
+    "email": "admin@example.com",
+    "password": "admin12345",
+    "name": "Admin",
+    "surname": "Root"
+  }
+}

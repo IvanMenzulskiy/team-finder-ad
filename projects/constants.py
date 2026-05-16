@@ -1,0 +1,5 @@
+"""Константы приложения projects."""
+
+NAME_MAX_LENGTH = 200
+PROJECTS_PAGE_SIZE = 12
+DESCRIPTION_TEXTAREA_ROWS = 5
